@@ -1,6 +1,8 @@
 import logging  
 from uuid import uuid4  
 from typing import Final  
+from Message import *
+
 
 import requests  
 from telegram import Update, InlineQueryResultPhoto, InlineKeyboardButton, InlineKeyboardMarkup  
@@ -9,6 +11,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes, filters, Mes
 from os import remove  
 
 TOKEN: Final = "6927513102:AAECGNdiBmEFHRhxK2AzS81J9agm1h3AZi0"
+
 
 logging.basicConfig(  
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO  
@@ -20,6 +23,10 @@ logger = logging.getLogger(__name__)
 
 # Conversation states  
 REQUEST, CAPTION = range(2)  
+
+def orm_create (text , messageID , userID , tag , status):
+    
+    Message.create(Message(text , messageID , userID , tag , status))   
 
 class Bot:  
     def __init__(self):  
@@ -59,11 +66,15 @@ class Bot:
     async def caption_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:  
         """Handles the caption input from the user."""  
         self.caption[update.effective_chat.id] = update.message.text  
-        print(update)
+        # print()
+        # m1 = Message(update.message.text, update.message.message_id, update.effective_chat.id, "دبیر", "active")
+        # Message.create(m1)
+        orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "دبیر", "active")
         await context.bot.send_message(  
-            text=f"{update.message.text}\n #دبیر",  
-            chat_id= 7212319806,  
+            text=f"{int(update.message.message_id)}\n{update.message.text}\n#دبیر",  
+            chat_id= -4107388966,  
         )  
+        
         return ConversationHandler.END  # End the conversation, or change this if you expect to stay in conversation  
 
     async def cancel_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:  
@@ -111,15 +122,33 @@ class Bot:
         try:  
             if update.message.reply_to_message:  
                 original_message = update.message.reply_to_message  
-                # Processing message reply  
-                await context.bot.send_message(chat_id=774601286, text=update.message.text ,reply_to_message_id=617)  
+                txt = original_message.text.split("\n")  
+                print(txt[0])  
+                selected_m = dict()
+                Message.read_from_json()
+
+                for message in MESSAGE:  
+                    if message['messageID'] == int(txt[0]) : 
+                        print("suc")
+                        selected_m = message  
+
+                if selected_m:  # Check if a message was found  
+                    await context.bot.send_message(  
+                        chat_id=selected_m['userID'],  # Access using subscript notation  
+                        text=update.message.text,  
+                        reply_to_message_id=selected_m['messageID']  # Access using subscript notation  
+                    )  
+                else:  
+                    print("Message not found")  # Handle the case when the message is not found  
         except Exception as e:  
-            logging.error(f"Error in handle_message: {e}")  
+            logging.error(f"Error in handle_message: {e}")
 
 
 
 if __name__ == "__main__":  
     # Create the Application and pass it your bot's token  
+    Message.read_from_json()
+    print(MESSAGE)
     application = Application.builder().token(TOKEN).build()  
     bot = Bot()  
 
