@@ -12,9 +12,10 @@ class Message:
         self.messageID = messageID  
         self.userID = userID  
         self.tag = tag  
+        self.answer = None
         self.end_date = None  
         self.status = status  
-        MESSAGE.append(self)  
+        # MESSAGE.append(self)  
 
     @property  
     def set_end_date(self):  
@@ -28,10 +29,11 @@ class Message:
             "messageID": new_message.messageID,  
             "userID": new_message.userID,  
             "tag": new_message.tag,  
+            "answer" : new_message.answer,
             "end_date": str(new_message.end_date) if new_message.end_date else None,  # Check if end_date is None  
             "status": new_message.status  
         }  
-
+        MESSAGE.append(data)
         try:  
             with open("messages.json", "r+") as file:  
                 file_data = json.load(file)  
@@ -62,18 +64,25 @@ class Message:
                     MESSAGE.append(message)
         except FileNotFoundError:
             pass
-    @classmethod  
-    def update(cls, messageID, updated_message):  
-        """  
-        Updates an existing message in the MESSAGE list.  
-        """  
-        for message in MESSAGE:  
-            if message.messageID == messageID:  # Use messageID not id  
-                for key, value in updated_message.items():  
-                    setattr(message, key, value)  # Update attributes intelligently  
-                break  
-        cls.write_all()  
+    @classmethod
+    def update_message(cls, message_id, new_data):
+        """Updates a message in the database."""
+        # Read the existing data from the JSON file
+        with open('messages.json', 'r') as f:
+            messages = json.load(f)
 
+        # Find the message to update
+        for i, message in enumerate(messages):
+            if message['messageID'] == message_id:
+                # Update the message data
+                messages[i] = new_data
+                break
+        else:
+            raise ValueError(f"Message with ID {message_id} not found")
+
+        # Write the updated data back to the JSON file
+        with open('messages.json', 'w') as f:
+            json.dump(messages, f, indent=4)
     @classmethod  
     def delete(cls, messageID):  
         """  
@@ -92,6 +101,7 @@ class Message:
         """  
         messages = [message.__dict__ for message in MESSAGE]  # Create list of message dictionaries  
         with open('messages.json', 'w') as f:  
+            
             json.dump(messages, f, indent=4)  # Format the JSON output nicely  
 
     
@@ -115,9 +125,9 @@ class Message:
                 print("suc")
                 return message  # Return the Message object if found  
         return None  
-if __name__ == '__main__':  
-    # m1 = Message("hello", 1, 2, 3, 7)  
-    Message.read_from_json()
-    print(MESSAGE)
-    m = Message.find_by_messageID(930)
-    print(m["userID"])
+# if __name__ == '__main__':  
+#     # m1 = Message("hello", 1, 2, 3, 7)  
+#     Message.read_from_json()
+#     print(*MESSAGE)
+#     # m = Message.find_by_messageID(930)
+#     # print(m["userID"])

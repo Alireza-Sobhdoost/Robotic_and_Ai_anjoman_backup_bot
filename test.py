@@ -125,14 +125,20 @@ class Bot:
                 txt = original_message.text.split("\n")  
                 print(txt[0])  
                 selected_m = dict()
-                Message.read_from_json()
+                selected_m = Message.find_by_messageID(int(txt[0]))
+                selected_m["answer"] = update.message.text
+                selected_m["end_date"] = str(datetime.now())
+                selected_m["status"] = "done"
+                Message.update_message(selected_m["messageID"], selected_m)
+                # Message.read_from_json()
 
-                for message in MESSAGE:  
-                    if message['messageID'] == int(txt[0]) : 
-                        print("suc")
-                        selected_m = message  
+                # for message in MESSAGE:  
+                #     if message['messageID'] == int(txt[0]) : 
+                #         print("suc")
+                #         selected_m = message  
 
                 if selected_m:  # Check if a message was found  
+                    
                     await context.bot.send_message(  
                         chat_id=selected_m['userID'],  # Access using subscript notation  
                         text=update.message.text,  
