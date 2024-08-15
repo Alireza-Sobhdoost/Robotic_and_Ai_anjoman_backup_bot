@@ -1,325 +1,319 @@
-import logging
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Application, CommandHandler, ContextTypes, filters, MessageHandler, CallbackQueryHandler
-
-Request = 0
-import Token
-TOKEN = Token.Token.getToken()
-
-# Enable logging
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-
-# Set higher logging level for httpx to avoid all GET and POST requests being logged
-logging.getLogger("httpx").setLevel(logging.WARNING)
-
-logger = logging.getLogger(__name__)
-
-# Create a file handler and set the file name to log to "bot_log.txt"
-file_handler = logging.FileHandler('bot_log.txt')
-file_handler.setLevel(logging.INFO)
-
-# Create a formatter for the file handler
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_formatter)
-
-# Add the file handler to the logger
-logger.addHandler(file_handler)
-
-
-async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Sends a message with three inline buttons attached."""
-    keyboard = [
-        [
-            InlineKeyboardButton("King polynomial", callback_data="1"),
-            InlineKeyboardButton("Logical calculator", callback_data="2"),
-        ],
-        [
-            InlineKeyboardButton("DM calaculator", callback_data="3"),
-            InlineKeyboardButton("caught the red-handed", callback_data="4"),
-        ],
-    ]
-
-    reply_markup = InlineKeyboardMarkup(keyboard)
-
-    await update.message.reply_text(
-        f"Hi dear {update.effective_user.first_name}\nwellcome to my Dm bot\nplease choose one of our services!",
-        reply_markup=reply_markup)
-
-
-async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Parses the CallbackQuery and updates the message text."""
-    query = update.callback_query
-    global Request
-
-    # CallbackQueries need to be answered, even if no notification to the user is needed
-    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
-    await query.answer()
-    # print(query.data)
-    # print(type(query.data))
-    if query.data == "1":
-        await query.edit_message_text(
-            text=f"Please enter your Board description to calculate thr King Polynomial there is a valid exaple\n3 3\n0 0 0\n0 0 0\n0 1 0\n🟪 You can use /b to back to the main menu")
-        Request = 1
-    if query.data == "2":
-        await query.edit_message_text(
-            text=f"Please enter your Logical problem\n🟪 You can use /b to back to the main menu")
-        Request = 2
-    if query.data == "3":
-        keyboard = [
-            [
-                InlineKeyboardButton("Factorial", callback_data="5"),
-                InlineKeyboardButton("Circular permutation", callback_data="6"),
-            ],
-            [
-                InlineKeyboardButton("Permutation", callback_data="7"),
-                InlineKeyboardButton("Combination", callback_data="8"),
-            ],
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-        await query.edit_message_text(
-            text=f"Hi dear {update.effective_user.first_name}\nwhat DM operation can I do for you ?",
-            reply_markup=reply_markup)
-        Request = 3
-    if query.data == "5":
-        await query.edit_message_text(
-            text=f"Please enter the factorail problrm\n🟪 You can use /b to back to the main menu")
-        Request = 5
-    if query.data == "6":
-        await query.edit_message_text(
-            text=f"Please enter the Circular permutation problrm\n🟪 You can use /b to back to the main menu")
-        Request = 6
-    if query.data == "7":
-        await query.edit_message_text(
-            text=f"Please enter two numbers you want to calcaulate their permutation in the order bellow\n 👉 n r\n🟪 You can use /b to back to the main menu")
-        Request = 7
-    if query.data == "8":
-        await query.edit_message_text(
-            text=f"Please enter two numbers you want to calcaulate their combinition in the order bellow\n 👉 n r\n🟪 You can use /b to back to the main menu")
-        Request = 8
-    if query.data == "4":
-        await query.edit_message_text(
-            text=f"Please enter your problem to find out how many ways we have to distribute n thing to k choise in the order bellow\n 👉  X1 + X2 + .... + Xk = n\n 👉  Ai < X1 < Bi ,Ai <= X2 <= Bi , X3 = j\n🟪 You can use /b to back to the main menu")
-        Request = 4
-        # await query.edit_message_text(text=f"Selected option: {query.data}")
-
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Displays info on how to use the bot."""
-
-
-async def logic(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job = context.job
-    import Logic
-    result = Logic.expression(job.data)
-    await context.bot.send_message(job.chat_id, text=f"Result: {result}")
-
-
-async def set_logicalCalculator(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_message.chat_id
-    # Get the raw input string from the user's message
-    input_data = update.message.text
-    if not input_data:
-        await context.bot.send_message(chat_id, text="Please provide input data.")
-        return
-
-    due = 1.0
-    context.job_queue.run_once(logic, due, chat_id=chat_id, name=str(chat_id), data=input_data)
-
-
-async def DM_factorial(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job = context.job
-    import DmCalc
-    result = DmCalc.Factorial_operator(job.data)
-    await context.bot.send_message(job.chat_id, text=f"Result: {result}")
-
-
-async def set_factorial(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_message.chat_id
-    # Get the raw input string from the user's message
-    input_data = update.message.text
-    if not input_data:
-        await context.bot.send_message(chat_id, text="Please provide input data.")
-        return
-
-    due = 1.0
-    context.job_queue.run_once(DM_factorial, due, chat_id=chat_id, name=str(chat_id), data=input_data)
-
-
-async def DM_circular_permutation(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job = context.job
-    import DmCalc
-    result = DmCalc.Circular_permutation(job.data)
-    await context.bot.send_message(job.chat_id, text=f"Result: {result}")
-
-
-async def set_circular_permutation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_message.chat_id
-    # Get the raw input string from the user's message
-    input_data = update.message.text
-    if not input_data:
-        await context.bot.send_message(chat_id, text="Please provide input data.")
-        return
-
-    due = 1.0
-    context.job_queue.run_once(DM_circular_permutation, due, chat_id=chat_id, name=str(chat_id), data=input_data)
-
-
-async def DM_permutation(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job = context.job
-    import DmCalc
-    result = DmCalc.Permutation(job.data)
-    await context.bot.send_message(job.chat_id, text=f"Result: {result}")
-
-
-async def set_permutation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_message.chat_id
-    # Get the raw input string from the user's message
-    input_data = update.message.text
-    if not input_data:
-        await context.bot.send_message(chat_id, text="Please provide input data.")
-        return
-
-    due = 1.0
-    context.job_queue.run_once(DM_permutation, due, chat_id=chat_id, name=str(chat_id), data=input_data)
-
-
-async def DM_combinition(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job = context.job
-    import DmCalc
-    result = DmCalc.Combination(job.data)
-    await context.bot.send_message(job.chat_id, text=f"Result: {result}")
-
-
-async def set_combinition(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_message.chat_id
-    # Get the raw input string from the user's message
-    input_data = update.message.text
-    if not input_data:
-        await context.bot.send_message(chat_id, text="Please provide input data.")
-        return
-
-    due = 1.0
-    context.job_queue.run_once(DM_combinition, due, chat_id=chat_id, name=str(chat_id), data=input_data)
-
-
-async def red_handed(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job = context.job
-    import RedHanded
-    result = RedHanded.set_combinations(job.data)
-    await context.bot.send_message(job.chat_id, text=f"Result: {result}")
-
-
-async def set_red_handed(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_message.chat_id
-    # Get the raw input string from the user's message
-    input_data = update.message.text
-    if not input_data:
-        await context.bot.send_message(chat_id, text="Please provide input data.")
-        return
-
-    due = 1.0
-    context.job_queue.run_once(red_handed, due, chat_id=chat_id, name=str(chat_id), data=input_data)
-
-async def king(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job = context.job
-    import KingPolynomial
-    result = KingPolynomial.Kingpolynomial(job.data)
-    await context.bot.send_message(job.chat_id, text=f"\t{result}")
-
-
-async def set_king_polynomial(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_message.chat_id
-    # Get the raw input string from the user's message
-    input_data = update.message.text
-    if not input_data:
-        await context.bot.send_message(chat_id, text="Please provide input data.")
-        return
-
-    due = 1.0
-    context.job_queue.run_once(king, due, chat_id=chat_id, name=str(chat_id), data=input_data)
-
-async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global Request
-    print(Request)
-    # input_data = update.message.text
-    # print(input_data)
-    if Request == 1:
-        await set_king_polynomial(update, context)
-    elif Request == 2:
-        await set_logicalCalculator(update, context)
-    elif Request == 5:
-        await set_factorial(update, context)
-    elif Request == 6:
-        await set_circular_permutation(update, context)
-    elif Request == 7:
-        await set_permutation(update, context)
-    elif Request == 8:
-        await set_combinition(update, context)
-    elif Request == 4:
-        await set_red_handed(update, context)
-    else:
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=update.message.text
-        )
-
-
-async def back_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global Request
-    if Request == 5 or Request == 6 or Request == 7 or Request == 8:
-        keyboard = [
-            [
-                InlineKeyboardButton("Factorial", callback_data="5"),
-                InlineKeyboardButton("Circular permutation", callback_data="6"),
-            ],
-            [
-                InlineKeyboardButton("Permutation", callback_data="7"),
-                InlineKeyboardButton("Combination", callback_data="8"),
-            ],
-        ]
-        Request = 3
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        await update.message.reply_text(
-            f"Hi again dear {update.effective_user.first_name}\nwhat DM operation can I do for you ?",
-            reply_markup=reply_markup)
-
-    else:
-
-        keyboard = [
-            [
-                InlineKeyboardButton("King polynomial", callback_data="1"),
-                InlineKeyboardButton("Logical calculator", callback_data="2"),
-            ],
-            [
-                InlineKeyboardButton("DM calaculator", callback_data="3"),
-                InlineKeyboardButton("caught the red-handed", callback_data="4"),
-            ],
-        ]
-
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        await update.message.reply_text(
-            f"Hi again dear {update.effective_user.first_name}\nHow can I help you with your Dm today",
-            reply_markup=reply_markup)
-
-
-if __name__ == "__main__":
-    # Create the Application and pass it your bot's token
-    application = Application.builder().token(TOKEN).build()
-    # Command Handler
-    application.add_handler(CommandHandler("start", start_handler))
-    application.add_handler(CommandHandler("b", back_handler))
-    application.add_handler(CallbackQueryHandler(button))
-    application.add_handler(MessageHandler(filters.TEXT, message_handler))
-    # application.add_handler(MessageHandler(filters.FORWARDED & filters.PHOTO, callback))
-
-    # Run the Bot
-
+import logging  
+from uuid import uuid4  
+from typing import Final  
+from Message import *
+
+
+import requests  
+from telegram import Update, InlineQueryResultArticle, InlineKeyboardButton, InlineKeyboardMarkup  , InputTextMessageContent
+from telegram.ext import Application, CommandHandler, ContextTypes, filters, MessageHandler, InlineQueryHandler, \
+    ConversationHandler, CallbackQueryHandler  
+from os import remove  
+
+TOKEN: Final = "7300496225:AAEQYdQjmw0ro2UnGXfghhzMvdLbePTGISM"
+
+
+logging.basicConfig(  
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO  
+)  
+# Set higher logging level for httpx to avoid all GET and POST requests being logged  
+logging.getLogger("httpx").setLevel(logging.WARNING)  
+
+logger = logging.getLogger(__name__)  
+
+# Conversation states  
+REQUEST, CAPTION = range(2)  
+
+def orm_create (text , messageID , userID , tag , status):
+    
+    Message.create(Message(text , messageID , userID , tag , status))   
+
+class Bot:  
+    def __init__(self):  
+        self.caption = {}  
+
+    async def start_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
+        """Sends a message with three inline buttons attached."""  
+        keyboard = [  
+            [  
+                InlineKeyboardButton("ارتباط با دبیر", callback_data="1"),  
+                InlineKeyboardButton("انتقادات و پیشنهادات", callback_data="4"),  
+
+            ],  
+            [  
+                InlineKeyboardButton("ارتباط با رویداد ها", callback_data="3"),  
+                InlineKeyboardButton("ارتباط با آموزش", callback_data="2"),  
+
+            ],  
+             [  
+                InlineKeyboardButton("ارتباط با آزمون", callback_data="5"),   
+
+            ], 
+        ]  
+
+        reply_markup = InlineKeyboardMarkup(keyboard)  
+
+        await update.message.reply_text(  
+            f"روز بخیر {update.effective_user.first_name}\nبه بات پشتیبانی انجمن رباتیک و هوش مصنوعی دانشگاه گیلان خوش آمدید\nچطور میتونم کمکتون کنم ؟",  
+            reply_markup=reply_markup)  
+
+        return REQUEST  # Transition to REQUEST state  
+
+    async def button(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:  
+        global REQUEST
+        """Parses the CallbackQuery and updates the message text."""  
+        query = update.callback_query  
+        await query.answer()  
+        if query.data == "1":  
+            await query.edit_message_text(text="مدیریت در خدمته !")  
+            REQUEST = 1
+            return CAPTION
+
+        # Handle other button actions similarly if needed  
+        if query.data == "2":
+            keyboard = [
+                [
+                    InlineKeyboardButton("ثبت نام در دوره های آموزشی", callback_data="21")
+                    
+                ],
+                [
+                    InlineKeyboardButton("BP سوال خصوصی دوره", callback_data="22")
+                    
+                ],
+            ]
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
+
+            await query.edit_message_reply_markup(reply_markup=reply_markup)
+            await query.edit_message_text(
+                text=f"درود\nآموزش در خدمته !",
+                reply_markup=reply_markup)
+            REQUEST = 2
+
+            # return REQUEST
+
+        if query.data == "3":
+            keyboard = [
+                [
+                    InlineKeyboardButton("ثبت نام رویداد ", callback_data="31")
+                    
+                ],
+            ]
+
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_reply_markup(reply_markup=reply_markup)
+            await query.edit_message_text(
+                text=f"درود \nبخش رویداد در خدمته !",
+                reply_markup=reply_markup)
+            REQUEST = 3
+            # return CAPTION
+            
+        if query.data == "4":
+
+            await query.edit_message_text(
+                text=f"درود \nبی صبرانه منتظر دریافت انتقادات ونظراتتون هستیم")
+            REQUEST = 4
+            return CAPTION
+
+        if query.data == "5":
+
+            await query.edit_message_text(
+                text=f"درود \nپشتیبانی آزمون در خدمته مشکلی پیش اومده ؟")
+            REQUEST = 5
+        if query.data == "21":
+            await query.edit_message_text(
+                text=f"درود\nآیا میخواید در دوره ای شرکت کنید ؟ تیم ما برای مشاوره و ثبت نام در خدمت شماست")
+            
+            REQUEST = 21
+            return CAPTION
+
+        if query.data == "22":
+            await query.edit_message_text(
+                text=f"درود\nسوالتون در راستای دوره مبانی عنوان کنید !\nاساتید ما در اسرع وقت به شما پاسخ خواهند داد")
+            REQUEST = 22
+            return CAPTION
+
+        if query.data == "31":
+            await query.edit_message_text(
+                text=f"درود\nآیا میخواید در رویدادی شرکت کنید ؟ تیم ما برای مشاوره و ثبت نام در خدمت شماست")
+            REQUEST = 31
+            return CAPTION
+
+            #  return CAPTION  # Transition to CAPTION state  
+    
+
+    async def caption_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:  
+        """Handles the caption input from the user."""  
+        self.caption[update.effective_chat.id] = update.message.text  
+        global REQUEST
+
+        # print()
+        # m1 = Message(update.message.text, update.message.message_id, update.effective_chat.id, "دبیر", "active")
+        # Message.create(m1)
+
+        if REQUEST == 1:
+            orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "دبیر", "active")
+            await context.bot.send_message(  
+                text=f"{int(update.message.message_id)}\n{update.message.text}\n#دبیر",  
+                chat_id= -4107388966,  
+            ) 
+            await context.bot.send_message(  
+                text=f"پیام شما با موفقت برای تیم پشتیبانی ارسال شد",  
+                chat_id= update.effective_chat.id,  
+            ) 
+        if REQUEST == 2 or REQUEST == 21 or REQUEST == 22:
+            if REQUEST == 21:
+                tag = "آموزش_ثبت_نام_دوره"
+            elif REQUEST == 22 :
+                tag = "آموزش_ابهام_در_دوره_BP"
+            orm_create(update.message.text, update.message.message_id, update.effective_chat.id, tag, "active")
+            await context.bot.send_message(  
+                text=f"{int(update.message.message_id)}\n{update.message.text}\n#{tag}",  
+                chat_id= -4107388966,  
+            ) 
+            await context.bot.send_message(  
+                text=f"پیام شما با موفقت برای تیم پشتیبانی ارسال شد",  
+                chat_id= update.effective_chat.id,  
+            ) 
+            
+
+        if REQUEST == 3 or REQUEST == 31:
+            tag = "رویداد_ثبت_نام_رویداد"
+            orm_create(update.message.text, update.message.message_id, update.effective_chat.id, tag, "active")
+            await context.bot.send_message(  
+                text=f"{int(update.message.message_id)}\n{update.message.text}\n#{tag}",  
+                chat_id= -4107388966,  
+            ) 
+            await context.bot.send_message(  
+                text=f"پیام شما با موفقت برای تیم پشتیبانی ارسال شد",  
+                chat_id= update.effective_chat.id,  
+            ) 
+
+        if REQUEST == 4:
+            orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "انتقادات_و_پیشنهادات", "active")
+            await context.bot.send_message(  
+                text=f"{int(update.message.message_id)}\n{update.message.text}\n#انتقادات_و_پیشنهادات",  
+                chat_id= -4107388966,  
+            ) 
+            await context.bot.send_message(  
+                text=f"پیام شما با موفقت برای تیم پشتیبانی ارسال شد",  
+                chat_id= update.effective_chat.id,  
+            ) 
+    
+
+        if REQUEST == 5:
+            orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "ارتباط_با_آزمون" , "active")
+            await context.bot.send_message(  
+            text=f"{int(update.message.message_id)}\n{update.message.text}\n#ارتباط_با_آزمون",  
+            chat_id= -4107388966,  
+            ) 
+            await context.bot.send_message(  
+            text=f"پیام شما با موفقت برای تیم پشتیبانی ارسال شد",  
+            chat_id= update.effective_chat.id,  
+            ) 
+        REQUEST = 0
+        
+        return ConversationHandler.END  # End the conversation, or change this if you expect to stay in conversation  
+
+    async def cancel_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:  
+        """Handles the cancellation of the conversation."""  
+        await context.bot.send_message(  
+            chat_id=update.effective_chat.id,  
+            text="you just canceled the conversation"  
+        )  
+        return ConversationHandler.END  
+    
+    async def inline_query(self ,update, context):
+        query = update.inline_query.query
+        if not query:
+            return
+        elif query == "actives":
+            messages = await Message.find_by_status('active')
+
+            results = []
+            for message in messages:
+                results.append(
+                    InlineQueryResultArticle(
+                        id=message['messageID'],
+                        title=message['text'],
+                        input_message_content=InputTextMessageContent(f"{message['messageID']}\n{message['text']}\n#{message['tag']}"),
+                    )
+                )
+
+            await context.bot.answer_inline_query(update.inline_query.id, results)
+
+        elif "find" in query:
+            splited_query = query.split(" ")
+            id = int(splited_query[1])
+            print(id)
+            messages = Message.find_user_messages(id)
+            results = []
+            print(messages)
+            for message in messages:
+                results.append(
+                    InlineQueryResultArticle(
+                        id=message['messageID'],
+                        title=message['text'],
+                        input_message_content=InputTextMessageContent(f"{message['messageID']}\n{message['text']}\n#{message['tag']}"),
+                    )
+                )
+
+            await context.bot.answer_inline_query(update.inline_query.id, results)
+
+
+
+    async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):  
+        try:  
+            if update.message.reply_to_message:  
+                original_message = update.message.reply_to_message  
+                txt = original_message.text.split("\n")  
+                print(txt[0])  
+                selected_m = dict()
+                selected_m = Message.find_by_messageID(int(txt[0]))
+                selected_m["answer"] = update.message.text
+                selected_m["end_date"] = str(datetime.now())
+                selected_m["status"] = "done"
+                Message.update_message(selected_m["messageID"], selected_m) 
+
+                if selected_m:  # Check if a message was found  
+                    
+                    await context.bot.send_message(  
+                        chat_id=selected_m['userID'],  # Access using subscript notation  
+                        text=update.message.text,  
+                        reply_to_message_id=selected_m['messageID']  # Access using subscript notation  
+                    )  
+                else:  
+                    print("Message not found")  # Handle the case when the message is not found  
+        except Exception as e:  
+            logging.error(f"Error in handle_message: {e}")
+
+
+
+if __name__ == "__main__":  
+    # Create the Application and pass it your bot's token  
+    Message.read_from_json()
+    print(MESSAGE)
+    application = Application.builder().token(TOKEN).build()  
+    bot = Bot()  
+
+    # Conversation Handler  
+    conv = ConversationHandler(  
+        entry_points=[CommandHandler("start", bot.start_handler)],  
+        states={  
+            REQUEST: [CallbackQueryHandler(bot.button)],  
+            CAPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, bot.caption_handler)],  
+        },  
+        fallbacks=[MessageHandler(filters.ALL, bot.cancel_handler)],  
+        allow_reentry=True  
+    )  
+    
+    application.add_handler(conv)  
+    application.add_handler(InlineQueryHandler(bot.inline_query))
+    application.add_handler(MessageHandler(filters.REPLY, bot.handle_message))
+
+
+
+    # Run the Bot  
     application.run_polling()
+
+    

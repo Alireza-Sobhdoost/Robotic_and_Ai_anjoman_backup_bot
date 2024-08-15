@@ -154,7 +154,7 @@ class Bot:
         if REQUEST == 1:
             orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "دبیر", "active")
             await context.bot.send_message(  
-                text=f"{int(update.message.message_id)}\n{update.message.text}\n#دبیر\n#{update.effective_chat.id}",  
+                text=f"{int(update.message.message_id)}\n{update.message.text}\n#دبیر",  
                 chat_id= -4107388966,  
             ) 
             await context.bot.send_message(  
@@ -168,7 +168,7 @@ class Bot:
                 tag = "آموزش_ابهام_در_دوره_BP"
             orm_create(update.message.text, update.message.message_id, update.effective_chat.id, tag, "active")
             await context.bot.send_message(  
-                text=f"{int(update.message.message_id)}\n{update.message.text}\n#{tag}\n#{update.effective_chat.id}",  
+                text=f"{int(update.message.message_id)}\n{update.message.text}\n#{tag}",  
                 chat_id= -4107388966,  
             ) 
             await context.bot.send_message(  
@@ -181,7 +181,7 @@ class Bot:
             tag = "رویداد_ثبت_نام_رویداد"
             orm_create(update.message.text, update.message.message_id, update.effective_chat.id, tag, "active")
             await context.bot.send_message(  
-                text=f"{int(update.message.message_id)}\n{update.message.text}\n#{tag}\n#{update.effective_chat.id}",  
+                text=f"{int(update.message.message_id)}\n{update.message.text}\n#{tag}",  
                 chat_id= -4107388966,  
             ) 
             await context.bot.send_message(  
@@ -192,7 +192,7 @@ class Bot:
         if REQUEST == 4:
             orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "انتقادات_و_پیشنهادات", "active")
             await context.bot.send_message(  
-                text=f"{int(update.message.message_id)}\n{update.message.text}\n#انتقادات_و_پیشنهادات\n#{update.effective_chat.id}",  
+                text=f"{int(update.message.message_id)}\n{update.message.text}\n#انتقادات_و_پیشنهادات",  
                 chat_id= -4107388966,  
             ) 
             await context.bot.send_message(  
@@ -204,7 +204,7 @@ class Bot:
         if REQUEST == 5:
             orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "ارتباط_با_آزمون" , "active")
             await context.bot.send_message(  
-            text=f"{int(update.message.message_id)}\n{update.message.text}\n#ارتباط_با_آزمون\n#{update.effective_chat.id}",  
+            text=f"{int(update.message.message_id)}\n{update.message.text}\n#ارتباط_با_آزمون",  
             chat_id= -4107388966,  
             ) 
             await context.bot.send_message(  
@@ -242,6 +242,25 @@ class Bot:
 
             await context.bot.answer_inline_query(update.inline_query.id, results)
 
+        elif "find" in query:
+            splited_query = query.split(" ")
+            id = int(splited_query[1])
+            print(id)
+            messages = Message.find_user_messages(id)
+            results = []
+            print(messages)
+            for message in messages:
+                results.append(
+                    InlineQueryResultArticle(
+                        id=message['messageID'],
+                        title=message['text'],
+                        input_message_content=InputTextMessageContent(f"{message['messageID']}\n{message['text']}\n#{message['tag']}"),
+                    )
+                )
+
+            await context.bot.answer_inline_query(update.inline_query.id, results)
+
+
 
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):  
         try:  
@@ -273,7 +292,7 @@ class Bot:
 if __name__ == "__main__":  
     # Create the Application and pass it your bot's token  
     Message.read_from_json()
-    print(MESSAGE)
+    # print(MESSAGE)
     application = Application.builder().token(TOKEN).build()  
     bot = Bot()  
 

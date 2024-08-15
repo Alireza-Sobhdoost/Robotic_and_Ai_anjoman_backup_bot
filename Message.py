@@ -127,6 +127,21 @@ class Message:
         return None  
     
     @classmethod
+    def find_user_messages (cls, MiD):  
+          
+        messages = list()
+        userId = 0
+        # message = Message.find_by_messageID(MiD)
+        for message in MESSAGE:  
+            # print(message['text'] , message['tag'])
+            if message['messageID'] == MiD : 
+                userId = message['userID'] 
+        for message in MESSAGE:
+            if message["userID"] == userId:
+                messages.append(message)
+
+        return messages
+    @classmethod
     async def find_by_status(cls, status) :
         with open('messages.json', 'r') as f:
             messages = json.load(f)
