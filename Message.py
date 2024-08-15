@@ -125,6 +125,13 @@ class Message:
                 print("suc")
                 return message  # Return the Message object if found  
         return None  
+    
+    @classmethod
+    async def find_by_status(cls, status) :
+        with open('messages.json', 'r') as f:
+            messages = json.load(f)
+
+        return [message for message in messages if message['status'] == status]
 # if __name__ == '__main__':  
 #     # m1 = Message("hello", 1, 2, 3, 7)  
 #     Message.read_from_json()
