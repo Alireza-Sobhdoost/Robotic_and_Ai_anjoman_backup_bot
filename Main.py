@@ -10,7 +10,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes, filters, Mes
     ConversationHandler, CallbackQueryHandler  
 #.env
 
-TOKEN: Final = "7300496225:AAEQYdQjmw0ro2UnGXfghhzMvdLbePTGISM"
+TOKEN: Final = 'YOUR_BOT_TOKEN'
 
 
 logging.basicConfig(  
@@ -205,7 +205,7 @@ class Bot:
             orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "ارتباط_با_آزمون" , "active")
             await context.bot.send_message(  
             text=f"{int(update.message.message_id)}\n{update.message.text}\n#ارتباط_با_آزمون",  
-            chat_id= -4107388966,  
+            chat_id= 'your backup gruop chat id',  
             ) 
             await context.bot.send_message(  
             text=f"پیام شما با موفقت برای تیم پشتیبانی ارسال شد",  
