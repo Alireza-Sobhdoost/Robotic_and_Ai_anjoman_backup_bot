@@ -8,7 +8,7 @@ import requests
 from telegram import Update, InlineQueryResultArticle, InlineKeyboardButton, InlineKeyboardMarkup  , InputTextMessageContent
 from telegram.ext import Application, CommandHandler, ContextTypes, filters, MessageHandler, InlineQueryHandler, \
     ConversationHandler, CallbackQueryHandler  
-from os import remove  
+#.env
 
 TOKEN: Final = "7300496225:AAEQYdQjmw0ro2UnGXfghhzMvdLbePTGISM"
 
@@ -224,6 +224,10 @@ class Bot:
         return ConversationHandler.END  
     
     async def inline_query(self ,update, context):
+        # alowed_id = list()
+        # if update.inline_query.from_user.id not in alowed_id :
+        #     return
+        
         query = update.inline_query.query
         if not query:
             return
@@ -264,6 +268,7 @@ class Bot:
 
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):  
         try:  
+            print(update.message.chat_id)
             if update.message.reply_to_message:  
                 original_message = update.message.reply_to_message  
                 txt = original_message.text.split("\n")  
