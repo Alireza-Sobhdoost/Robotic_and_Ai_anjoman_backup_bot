@@ -1,16 +1,17 @@
 import logging  
-from uuid import uuid4  
 from typing import Final  
 from Message import *
+import os
+from dotenv import load_dotenv
 
 
-import requests  
 from telegram import Update, InlineQueryResultArticle, InlineKeyboardButton, InlineKeyboardMarkup  , InputTextMessageContent
 from telegram.ext import Application, CommandHandler, ContextTypes, filters, MessageHandler, InlineQueryHandler, \
-    ConversationHandler, CallbackQueryHandler  
-#.env
+    ConversationHandler, CallbackQueryHandler , CallbackContext
 
-TOKEN: Final = 'YOUR_BOT_TOKEN'
+#.env loading
+load_dotenv()
+TOKEN: Final = os.getenv('BOT_TOKEN')
 
 
 logging.basicConfig(  
@@ -90,7 +91,6 @@ class Bot:
                 reply_markup=reply_markup)
             REQUEST = 2
 
-            # return REQUEST
 
         if query.data == "3":
             keyboard = [
@@ -139,7 +139,6 @@ class Bot:
             REQUEST = 31
             return CAPTION
 
-            #  return CAPTION  # Transition to CAPTION state  
     
 
     async def caption_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:  
@@ -147,10 +146,7 @@ class Bot:
         self.caption[update.effective_chat.id] = update.message.text  
         global REQUEST
 
-        # print()
-        # m1 = Message(update.message.text, update.message.message_id, update.effective_chat.id, "دبیر", "active")
-        # Message.create(m1)
-
+    
         if REQUEST == 1:
             orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "دبیر", "active")
             await context.bot.send_message(  
@@ -205,7 +201,7 @@ class Bot:
             orm_create(update.message.text, update.message.message_id, update.effective_chat.id, "ارتباط_با_آزمون" , "active")
             await context.bot.send_message(  
             text=f"{int(update.message.message_id)}\n{update.message.text}\n#ارتباط_با_آزمون",  
-            chat_id= 'your backup gruop chat id',  
+            chat_id= -4107388966,  
             ) 
             await context.bot.send_message(  
             text=f"پیام شما با موفقت برای تیم پشتیبانی ارسال شد",  
@@ -222,6 +218,15 @@ class Bot:
             text="you just canceled the conversation"  
         )  
         return ConversationHandler.END  
+    
+    async def end_conversation(self, update: Update, context: CallbackContext) -> int:
+        """Handler to end the conversation when /b is sent."""
+        await context.bot.send_message(  
+            chat_id=update.effective_chat.id,  
+            text="you just canceled the conversation"  
+        )  
+        return ConversationHandler.END
+
     
     async def inline_query(self ,update, context):
         # alowed_id = list()
@@ -249,10 +254,10 @@ class Bot:
         elif "find" in query:
             splited_query = query.split(" ")
             id = int(splited_query[1])
-            print(id)
+            # print(id)
             messages = Message.find_user_messages(id)
             results = []
-            print(messages)
+            # print(messages)
             for message in messages:
                 results.append(
                     InlineQueryResultArticle(
@@ -297,7 +302,7 @@ class Bot:
 if __name__ == "__main__":  
     # Create the Application and pass it your bot's token  
     Message.read_from_json()
-    print(MESSAGE)
+    # print(MESSAGE)
     application = Application.builder().token(TOKEN).build()  
     bot = Bot()  
 
@@ -308,7 +313,10 @@ if __name__ == "__main__":
             REQUEST: [CallbackQueryHandler(bot.button)],  
             CAPTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, bot.caption_handler)],  
         },  
-        fallbacks=[MessageHandler(filters.ALL, bot.cancel_handler)],  
+        fallbacks=[
+        CommandHandler('b', bot.end_conversation),  # Intercept /b command to end the conversation
+        MessageHandler(filters.ALL, bot.cancel_handler)
+        ],  
         allow_reentry=True  
     )  
     
